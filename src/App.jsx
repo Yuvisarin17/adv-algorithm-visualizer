@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './styles/App.css';
 import SortingVisualizer from './components/SortingVisualizer';
 import PathfindingVisualizer from './components/PathfindingVisualizer';
+import Controls from './components/Controls';
 
 function App() {
   const [showSorting, setShowSorting] = useState(true);
@@ -13,7 +14,9 @@ function App() {
         <button onClick={() => setShowSorting(false)}>Show Pathfinding</button>
       </div>
 
-      <div className = "visualizer-contiainer">
+      <Controls />
+
+      <div className="visualizer-contiainer">
         {showSorting ? <SortingVisualizer /> : <PathfindingVisualizer />}
       </div>
     </div>
