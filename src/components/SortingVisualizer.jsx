@@ -43,14 +43,15 @@ export default function SortingVisualizer() {
     }
 
     function handleNextStep() {
-        if (currentStep >= steps.length) {
-            setHighlightedIndices([]);
-            setIsSorting(false);
-            return;
-        }
+    if (currentStep >= steps.length) {
+        setHighlightedIndices([]);
+        setIsSorting(false);
+        return;
+    }
 
-        const step = steps[currentStep];
-        const arrCopy = array.slice();
+    const step = steps[currentStep];
+    setArray(prevArray => {
+        const arrCopy = prevArray.slice();
 
         if (step.type === 'compare') {
             setHighlightedIndices(step.indices);
@@ -58,47 +59,49 @@ export default function SortingVisualizer() {
         if (step.type === 'swap') {
             const [i, j] = step.indices;
             [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
-            setArray(arrCopy);
         }
         if (step.type === 'overwrite') {
             arrCopy[step.index] = step.value;
-            setArray(arrCopy);
         }
         if (step.type === 'markSorted') {
             setSortedIndices(prev => [...prev, step.index]);
         }
 
-        setCurrentStep(prev => prev + 1);
-    }
+        return arrCopy;
+    });
+
+    setCurrentStep(prev => prev + 1);
+}
 
     async function handlePlayAll() {
-        for (let i = currentStep; i < steps.length; i++) {
-            const step = steps[i];
-            const arrCopy = array.slice();
+    let currentArray = array.slice(); // Keep a local copy that we update
+    
+    for (let i = currentStep; i < steps.length; i++) {
+        const step = steps[i];
 
-            if (step.type === 'compare') {
-                setHighlightedIndices(step.indices);
-            }
-            if (step.type === 'swap') {
-                const [m, n] = step.indices;
-                [arrCopy[m], arrCopy[n]] = [arrCopy[n], arrCopy[m]];
-                setArray(arrCopy);
-            }
-            if (step.type === 'overwrite') {
-                arrCopy[step.index] = step.value;
-                setArray(arrCopy);
-            }
-            if (step.type === 'markSorted') {
-                setSortedIndices((prev) => [...prev, step.index]);
-            }
-
-            setCurrentStep((prev) => prev + 1);
-            await sleep(300);  // adjust speed here if you want faster/slower
+        if (step.type === 'compare') {
+            setHighlightedIndices(step.indices);
+        }
+        if (step.type === 'swap') {
+            const [m, n] = step.indices;
+            [currentArray[m], currentArray[n]] = [currentArray[n], currentArray[m]];
+            setArray([...currentArray]); // Update React state with a copy
+        }
+        if (step.type === 'overwrite') {
+            currentArray[step.index] = step.value;
+            setArray([...currentArray]); // Update React state with a copy
+        }
+        if (step.type === 'markSorted') {
+            setSortedIndices((prev) => [...prev, step.index]);
         }
 
-        setHighlightedIndices([]);
-        setIsSorting(false);
+        setCurrentStep((prev) => prev + 1);
+        await sleep(300);
     }
+
+    setHighlightedIndices([]);
+    setIsSorting(false);
+}
 
 
     function handleReset() {

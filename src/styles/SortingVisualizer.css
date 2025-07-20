@@ -15,7 +15,7 @@
 }
 
 .array-bar.highlighted {
-    background-color: red;
+    background-color: orangered;
 }
 
 .array-bar.sorted {
@@ -54,7 +54,7 @@ button.active {
 }
 
 .legend-box.highlighted {
-    background-color: red;
+    background-color: orangered;
 }
 
 .legend-box.sorted {

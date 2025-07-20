@@ -13,6 +13,7 @@ export function bubbleSort(array) {
         steps.push({ type: 'markSorted', index: arr.length - i - 1 });
     }
 
+    console.log(steps);
     return steps;
 }
 
