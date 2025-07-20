@@ -8,7 +8,6 @@ A React-based project to visualize advanced sorting and pathfinding algorithms.
   - Insertion Sort
   - Merge Sort
   - Quick Sort
-  - Heap Sort
 
 - Pathfinding algorithms:
   - Dijkstra's Algorithm
@@ -26,7 +25,6 @@ A React-based project to visualize advanced sorting and pathfinding algorithms.
 
 - React.js
 - HTML + CSS animations
-- (Optional) Framer Motion or Canvas (for future improvements)
 
 ## 💡 Project Goal
 

@@ -10,21 +10,23 @@ export default function SortingVisualizer() {
     const [selectedAlgo, setSelectedAlgo] = useState('bubble');
     const [steps, setSteps] = useState([]);
     const [currentStep, setCurrentStep] = useState(0);
-    const [isSorting, setIsSorting] = useState(false); // optional: disable buttons while running
-
-
+    const [isSorting, setIsSorting] = useState(false);
+    const [arraySize, setArraySize] = useState(30);
+    const [speed, setSpeed] = useState(50);
 
     useEffect(() => {
         generateRandomArray();
-    }, []);
+    }, [arraySize]);
 
     function generateRandomArray() {
-        const randomArray = Array.from({ length: 10 }, () =>
-            Math.floor(Math.random() * 200) + 10
+        const randomArray = Array.from({ length: arraySize }, () =>
+            Math.floor(Math.random() * 280) + 20
         );
         setArray(randomArray);
         setSortedIndices([]);
         setHighlightedIndices([]);
+        setSteps([]);
+        setCurrentStep(0);
     }
 
     async function runSort() {
@@ -43,69 +45,68 @@ export default function SortingVisualizer() {
     }
 
     function handleNextStep() {
-    if (currentStep >= steps.length) {
-        setHighlightedIndices([]);
-        setIsSorting(false);
-        return;
+        if (currentStep >= steps.length) {
+            setHighlightedIndices([]);
+            setIsSorting(false);
+            return;
+        }
+
+        const step = steps[currentStep];
+        setArray(prevArray => {
+            const arrCopy = prevArray.slice();
+
+            if (step.type === 'compare') {
+                setHighlightedIndices(step.indices);
+            }
+            if (step.type === 'swap') {
+                const [i, j] = step.indices;
+                [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
+            }
+            if (step.type === 'overwrite') {
+                arrCopy[step.index] = step.value;
+            }
+            if (step.type === 'markSorted') {
+                setSortedIndices(prev => [...prev, step.index]);
+            }
+
+            return arrCopy;
+        });
+
+        setCurrentStep(prev => prev + 1);
     }
-
-    const step = steps[currentStep];
-    setArray(prevArray => {
-        const arrCopy = prevArray.slice();
-
-        if (step.type === 'compare') {
-            setHighlightedIndices(step.indices);
-        }
-        if (step.type === 'swap') {
-            const [i, j] = step.indices;
-            [arrCopy[i], arrCopy[j]] = [arrCopy[j], arrCopy[i]];
-        }
-        if (step.type === 'overwrite') {
-            arrCopy[step.index] = step.value;
-        }
-        if (step.type === 'markSorted') {
-            setSortedIndices(prev => [...prev, step.index]);
-        }
-
-        return arrCopy;
-    });
-
-    setCurrentStep(prev => prev + 1);
-}
 
     async function handlePlayAll() {
-    let currentArray = array.slice(); // Keep a local copy that we update
-    
-    for (let i = currentStep; i < steps.length; i++) {
-        const step = steps[i];
+        let currentArray = array.slice();
+        
+        for (let i = currentStep; i < steps.length; i++) {
+            const step = steps[i];
 
-        if (step.type === 'compare') {
-            setHighlightedIndices(step.indices);
-        }
-        if (step.type === 'swap') {
-            const [m, n] = step.indices;
-            [currentArray[m], currentArray[n]] = [currentArray[n], currentArray[m]];
-            setArray([...currentArray]); // Update React state with a copy
-        }
-        if (step.type === 'overwrite') {
-            currentArray[step.index] = step.value;
-            setArray([...currentArray]); // Update React state with a copy
-        }
-        if (step.type === 'markSorted') {
-            setSortedIndices((prev) => [...prev, step.index]);
+            if (step.type === 'compare') {
+                setHighlightedIndices(step.indices);
+            }
+            if (step.type === 'swap') {
+                const [m, n] = step.indices;
+                [currentArray[m], currentArray[n]] = [currentArray[n], currentArray[m]];
+                setArray([...currentArray]);
+            }
+            if (step.type === 'overwrite') {
+                currentArray[step.index] = step.value;
+                setArray([...currentArray]);
+            }
+            if (step.type === 'markSorted') {
+                setSortedIndices((prev) => [...prev, step.index]);
+            }
+
+            setCurrentStep((prev) => prev + 1);
+            await sleep(101 - speed);
         }
 
-        setCurrentStep((prev) => prev + 1);
-        await sleep(300);
+        setHighlightedIndices([]);
+        setIsSorting(false);
     }
 
-    setHighlightedIndices([]);
-    setIsSorting(false);
-}
-
-
     function handleReset() {
-        setArray(generateRandomArray());
+        generateRandomArray();
         setSteps([]);
         setCurrentStep(0);
         setSortedIndices([]);
@@ -118,71 +119,150 @@ export default function SortingVisualizer() {
     }
 
     function formatAlgoName(algo) {
-        if (algo === 'bubble') return 'Bubble Sort';
-        if (algo === 'selection') return 'Selection Sort';
-        if (algo === 'insertion') return 'Insertion Sort';
-        if (algo === 'merge') return 'Merge Sort';
-        if (algo === 'quick') return 'Quick Sort';
-        return '';
+        const names = {
+            'bubble': 'Bubble Sort',
+            'selection': 'Selection Sort',
+            'insertion': 'Insertion Sort',
+            'merge': 'Merge Sort',
+            'quick': 'Quick Sort'
+        };
+        return names[algo] || '';
     }
 
+    const getSpeedLabel = () => {
+        if (speed > 80) return 'Very Fast';
+        if (speed > 60) return 'Fast';
+        if (speed > 40) return 'Medium';
+        if (speed > 20) return 'Slow';
+        return 'Very Slow';
+    };
+
     return (
-        <div>
-            <h2>Sorting Visualizer</h2>
-            <div className="controls">
-                <button
-                    onClick={() => setSelectedAlgo('bubble')}
-                    className={selectedAlgo === 'bubble' ? 'active' : ''}
+        <div className="sorting-section">
+            <h2 className="section-title">Sorting Visualizer</h2>
+            
+            {/* Global Controls */}
+            <div className="global-controls">
+                <div className="control-group">
+                    <label>Speed: {getSpeedLabel()}</label>
+                    <input 
+                        type="range" 
+                        className="slider" 
+                        min="1" 
+                        max="100" 
+                        value={speed}
+                        onChange={(e) => setSpeed(parseInt(e.target.value))}
+                        disabled={isSorting}
+                    />
+                </div>
+                <div className="control-group">
+                    <label>Size: {arraySize}</label>
+                    <input 
+                        type="range" 
+                        className="slider" 
+                        min="10" 
+                        max="80" 
+                        value={arraySize}
+                        onChange={(e) => setArraySize(parseInt(e.target.value))}
+                        disabled={isSorting}
+                    />
+                </div>
+                <button 
+                    className="btn secondary" 
+                    onClick={generateRandomArray}
+                    disabled={isSorting}
                 >
-                    Bubble Sort
+                    Randomize
                 </button>
-                <button
-                    onClick={() => setSelectedAlgo('selection')}
-                    className={selectedAlgo === 'selection' ? 'active' : ''}
+                <button 
+                    className="btn danger" 
+                    onClick={handleReset}
+                    disabled={isSorting}
                 >
-                    Selection Sort
+                    Reset
                 </button>
-                <button
-                    onClick={() => setSelectedAlgo('insertion')}
-                    className={selectedAlgo === 'insertion' ? 'active' : ''}
+            </div>
+            
+            <div className="algorithm-buttons">
+                {['bubble', 'selection', 'insertion', 'merge', 'quick'].map(algo => (
+                    <button
+                        key={algo}
+                        className={`algo-btn ${selectedAlgo === algo ? 'active' : ''}`}
+                        onClick={() => setSelectedAlgo(algo)}
+                        disabled={isSorting}
+                    >
+                        {formatAlgoName(algo)}
+                    </button>
+                ))}
+            </div>
+
+            <div className="action-buttons">
+                <button 
+                    className="btn"
+                    onClick={runSort}
+                    disabled={isSorting}
                 >
-                    Insertion Sort
+                    Start Sorting
                 </button>
-                <button
-                    onClick={() => setSelectedAlgo('merge')}
-                    className={selectedAlgo === 'merge' ? 'active' : ''}
+                <button 
+                    className="btn secondary"
+                    onClick={handleNextStep}
+                    disabled={!isSorting}
                 >
-                    Merge Sort
+                    Next Step
                 </button>
-                <button
-                    onClick={() => setSelectedAlgo('quick')}
-                    className={selectedAlgo === 'quick' ? 'active' : ''}
+                <button 
+                    className="btn secondary"
+                    onClick={handlePlayAll}
+                    disabled={!isSorting}
                 >
-                    Quick Sort
+                    Play All
                 </button>
-                <button onClick={generateRandomArray}>Randomize</button>
-                <button onClick={runSort}>Start Sorting</button>
-                <button onClick={handleNextStep} disabled={!isSorting}>Next Step</button>
-                <button onClick={handlePlayAll} disabled={!isSorting}>Play All</button>
-                <button onClick={handleReset}>Reset</button>
             </div>
 
             <div className="legend">
-                <div><span className="legend-box normal"></span> Unsorted</div>
-                <div><span className="legend-box highlighted"></span> Comparing</div>
-                <div><span className="legend-box sorted"></span> Sorted</div>
+                <div className="legend-item">
+                    <div className="legend-box unsorted"></div>
+                    <span>Unsorted</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-box comparing"></div>
+                    <span>Comparing</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-box sorted"></div>
+                    <span>Sorted</span>
+                </div>
             </div>
 
-            <div className="sorting-container">
-                {array.map((value, idx) => (
-                    <ArrayBar
-                        key={idx}
-                        height={value}
-                        isHighlighted={highlightedIndices.includes(idx)}
-                        isSorted={sortedIndices.includes(idx)}
-                    />
-                ))}
+            <div className="visualization-container">
+                <div className="sorting-container">
+                    {array.map((value, idx) => (
+                        <ArrayBar
+                            key={idx}
+                            height={value}
+                            isHighlighted={highlightedIndices.includes(idx)}
+                            isSorted={sortedIndices.includes(idx)}
+                            maxHeight={300}
+                        />
+                    ))}
+                </div>
             </div>
+
+            {/* Status Display */}
+            {(isSorting || steps.length > 0) && (
+                <div className="status-display">
+                    <h3>{formatAlgoName(selectedAlgo)}</h3>
+                    <p>Step {currentStep} of {steps.length}</p>
+                    <div className="progress-bar">
+                        <div 
+                            className="progress-fill" 
+                            style={{ width: `${steps.length > 0 ? (currentStep / steps.length) * 100 : 0}%` }}
+                        ></div>
+                    </div>
+                    <p>Array Size: {array.length} | Speed: {getSpeedLabel()}</p>
+                </div>
+            )}
         </div>
     );
 }

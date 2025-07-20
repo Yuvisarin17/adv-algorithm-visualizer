@@ -7,8 +7,7 @@ export default function GridCell({
     onMouseEnter, 
     onMouseUp,
     isVisited,
-    isPath,
-    distance 
+    isPath
 }) {
     let className = 'grid-cell';
     
@@ -30,8 +29,6 @@ export default function GridCell({
             onMouseDown={onMouseDown}
             onMouseEnter={onMouseEnter}
             onMouseUp={onMouseUp}
-        >
-            {distance !== Infinity && distance > 0 && cellType === 'empty' && isVisited ? distance : ''}
-        </div>
+        />
     );
 }

@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GridCell from './GridCell';
-import { dijkstra, aStar, bfs } from '../algorithms/pathfindingAlgorithms';
+import { dijkstra, aStar, bfs, dfs, getNodesInShortestPathOrder } from '../algorithms/pathfindingAlgorithms';
 import '../styles/PathfindingVisualizer.css';
 
 export default function PathfindingVisualizer() {
     const ROWS = 20;
-    const COLS = 30;
+    const COLS = 35;
     const [grid, setGrid] = useState([]);
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [selectedTool, setSelectedTool] = useState('wall');
-    const [startNode, setStartNode] = useState({ row: 10, col: 5 });
-    const [endNode, setEndNode] = useState({ row: 10, col: 25 });
+    const [startNode, setStartNode] = useState({ row: 10, col: 8 });
+    const [endNode, setEndNode] = useState({ row: 10, col: 27 });
     const [isVisualizing, setIsVisualizing] = useState(false);
     const [selectedAlgorithm, setSelectedAlgorithm] = useState('dijkstra');
+    const [speed, setSpeed] = useState(50);
+    const [visitedCount, setVisitedCount] = useState(0);
+    const [pathLength, setPathLength] = useState(0);
 
     useEffect(() => {
         const initialGrid = createGrid();
@@ -51,6 +54,8 @@ export default function PathfindingVisualizer() {
     function clearGrid() {
         const newGrid = createGrid();
         setGrid(newGrid);
+        setVisitedCount(0);
+        setPathLength(0);
     }
 
     function clearPath() {
@@ -66,6 +71,8 @@ export default function PathfindingVisualizer() {
             }))
         );
         setGrid(newGrid);
+        setVisitedCount(0);
+        setPathLength(0);
     }
 
     function generateMaze() {
@@ -74,7 +81,7 @@ export default function PathfindingVisualizer() {
                 ...node,
                 cellType: node.cellType === 'start' || node.cellType === 'end' 
                     ? node.cellType 
-                    : Math.random() < 0.3 ? 'wall' : 'empty',
+                    : Math.random() < 0.25 ? 'wall' : 'empty',
                 isVisited: false,
                 isPath: false,
                 distance: Infinity,
@@ -82,6 +89,8 @@ export default function PathfindingVisualizer() {
             }))
         );
         setGrid(newGrid);
+        setVisitedCount(0);
+        setPathLength(0);
     }
 
     const handleMouseDown = useCallback((row, col) => {
@@ -147,6 +156,9 @@ export default function PathfindingVisualizer() {
             case 'bfs':
                 visitedNodesInOrder = bfs(grid, startNodeObj, endNodeObj);
                 break;
+            case 'dfs':
+                visitedNodesInOrder = dfs(grid, startNodeObj, endNodeObj);
+                break;
             default:
                 visitedNodesInOrder = dijkstra(grid, startNodeObj, endNodeObj);
         }
@@ -156,24 +168,16 @@ export default function PathfindingVisualizer() {
         await animateVisitedNodes(visitedNodesInOrder);
         await animateShortestPath(nodesInShortestPathOrder);
         
+        setVisitedCount(visitedNodesInOrder.length);
+        setPathLength(nodesInShortestPathOrder.length);
         setIsVisualizing(false);
-    }
-
-    function getNodesInShortestPathOrder(endNode) {
-        const nodesInShortestPathOrder = [];
-        let currentNode = endNode;
-        while (currentNode !== null) {
-            nodesInShortestPathOrder.unshift(currentNode);
-            currentNode = currentNode.previousNode;
-        }
-        return nodesInShortestPathOrder;
     }
 
     function animateVisitedNodes(visitedNodesInOrder) {
         return new Promise(resolve => {
             for (let i = 0; i <= visitedNodesInOrder.length; i++) {
                 if (i === visitedNodesInOrder.length) {
-                    setTimeout(() => resolve(), 50 * i);
+                    setTimeout(() => resolve(), (101 - speed) * i);
                     return;
                 }
                 setTimeout(() => {
@@ -183,7 +187,7 @@ export default function PathfindingVisualizer() {
                         newGrid[node.row][node.col] = { ...node, isVisited: true };
                         return newGrid;
                     });
-                }, 20 * i);
+                }, (101 - speed) * i);
             }
         });
     }
@@ -206,88 +210,176 @@ export default function PathfindingVisualizer() {
         });
     }
 
+    function formatAlgoName(algo) {
+        const names = {
+            'dijkstra': "Dijkstra's Algorithm",
+            'astar': 'A* Search',
+            'bfs': 'Breadth-First Search',
+            'dfs': 'Depth-First Search'
+        };
+        return names[algo] || '';
+    }
+
+    const getSpeedLabel = () => {
+        if (speed > 80) return 'Very Fast';
+        if (speed > 60) return 'Fast';
+        if (speed > 40) return 'Medium';
+        if (speed > 20) return 'Slow';
+        return 'Very Slow';
+    };
+
     return (
-        <div className="pathfinding-visualizer">
-            <h2>Pathfinding Visualizer</h2>
+        <div className="pathfinding-section">
+            <h2 className="section-title">Pathfinding Visualizer</h2>
             
-            <div className="algorithm-selection">
-                <h3>Choose Algorithm:</h3>
-                <button
-                    onClick={() => setSelectedAlgorithm('dijkstra')}
-                    className={selectedAlgorithm === 'dijkstra' ? 'active' : ''}
+            {/* Global Controls */}
+            <div className="global-controls">
+                <div className="control-group">
+                    <label>Speed: {getSpeedLabel()}</label>
+                    <input 
+                        type="range" 
+                        className="slider" 
+                        min="1" 
+                        max="100" 
+                        value={speed}
+                        onChange={(e) => setSpeed(parseInt(e.target.value))}
+                        disabled={isVisualizing}
+                    />
+                </div>
+                <button 
+                    className="btn secondary" 
+                    onClick={generateMaze}
+                    disabled={isVisualizing}
                 >
-                    Dijkstra's Algorithm
+                    Generate Maze
                 </button>
-                <button
-                    onClick={() => setSelectedAlgorithm('astar')}
-                    className={selectedAlgorithm === 'astar' ? 'active' : ''}
+                <button 
+                    className="btn danger" 
+                    onClick={clearGrid}
+                    disabled={isVisualizing}
                 >
-                    A* Search
-                </button>
-                <button
-                    onClick={() => setSelectedAlgorithm('bfs')}
-                    className={selectedAlgorithm === 'bfs' ? 'active' : ''}
-                >
-                    Breadth-First Search
+                    Clear Grid
                 </button>
             </div>
+            
+            {/* Algorithm Selection */}
+            <div className="algorithm-buttons">
+                {['dijkstra', 'astar', 'bfs', 'dfs'].map(algo => (
+                    <button
+                        key={algo}
+                        className={`algo-btn ${selectedAlgorithm === algo ? 'active' : ''}`}
+                        onClick={() => setSelectedAlgorithm(algo)}
+                        disabled={isVisualizing}
+                    >
+                        {formatAlgoName(algo)}
+                    </button>
+                ))}
+            </div>
 
+            {/* Tool Selection */}
             <div className="tool-selection">
                 <h3>Drawing Tools:</h3>
-                <button
-                    onClick={() => setSelectedTool('start')}
-                    className={selectedTool === 'start' ? 'active start-tool' : ''}
+                <div className="tool-buttons">
+                    {[
+                        { key: 'start', label: 'Start Node', color: '#4CAF50' },
+                        { key: 'end', label: 'End Node', color: '#F44336' },
+                        { key: 'wall', label: 'Wall', color: '#333333' }
+                    ].map(tool => (
+                        <button
+                            key={tool.key}
+                            className={`tool-btn ${selectedTool === tool.key ? 'active' : ''}`}
+                            onClick={() => setSelectedTool(tool.key)}
+                            disabled={isVisualizing}
+                            style={{
+                                backgroundColor: selectedTool === tool.key ? tool.color : '#f8f9fa',
+                                color: selectedTool === tool.key ? 'white' : '#495057'
+                            }}
+                        >
+                            {tool.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="action-buttons">
+                <button 
+                    className="btn"
+                    onClick={visualizeAlgorithm}
+                    disabled={isVisualizing}
                 >
-                    Start Node
+                    {isVisualizing ? 'Visualizing...' : `Visualize ${formatAlgoName(selectedAlgorithm)}`}
                 </button>
-                <button
-                    onClick={() => setSelectedTool('end')}
-                    className={selectedTool === 'end' ? 'active end-tool' : ''}
+                <button 
+                    className="btn secondary"
+                    onClick={clearPath}
+                    disabled={isVisualizing}
                 >
-                    End Node
-                </button>
-                <button
-                    onClick={() => setSelectedTool('wall')}
-                    className={selectedTool === 'wall' ? 'active wall-tool' : ''}
-                >
-                    Wall
+                    Clear Path
                 </button>
             </div>
 
-            <div className="controls">
-                <button onClick={visualizeAlgorithm} disabled={isVisualizing} className="visualize-btn">
-                    {isVisualizing ? 'Visualizing...' : `Visualize ${selectedAlgorithm.toUpperCase()}`}
-                </button>
-                <button onClick={clearPath} className="clear-path-btn">Clear Path</button>
-                <button onClick={clearGrid} className="clear-grid-btn">Clear Grid</button>
-                <button onClick={generateMaze} className="maze-btn">Generate Maze</button>
-            </div>
-
+            {/* Legend */}
             <div className="legend">
-                <div><span className="legend-box start"></span> Start</div>
-                <div><span className="legend-box end"></span> End</div>
-                <div><span className="legend-box wall"></span> Wall</div>
-                <div><span className="legend-box visited"></span> Visited</div>
-                <div><span className="legend-box path"></span> Shortest Path</div>
+                <div className="legend-item">
+                    <div className="legend-box start"></div>
+                    <span>Start</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-box end"></div>
+                    <span>End</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-box wall"></div>
+                    <span>Wall</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-box visited"></div>
+                    <span>Visited</span>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-box path"></div>
+                    <span>Shortest Path</span>
+                </div>
             </div>
 
-            <div className="grid-container">
-                {grid.map((row, rowIdx) => (
-                    <div className="grid-row" key={rowIdx}>
-                        {row.map((node, colIdx) => (
-                            <GridCell
-                                key={`${rowIdx}-${colIdx}`}
-                                cellType={node.cellType}
-                                isVisited={node.isVisited}
-                                isPath={node.isPath}
-                                distance={node.distance}
-                                onMouseDown={() => handleMouseDown(rowIdx, colIdx)}
-                                onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
-                                onMouseUp={handleMouseUp}
-                            />
-                        ))}
-                    </div>
-                ))}
+            {/* Grid Visualization */}
+            <div className="visualization-container">
+                <div className="grid-container">
+                    {grid.map((row, rowIdx) => (
+                        <div key={rowIdx} className="grid-row">
+                            {row.map((node, colIdx) => (
+                                <GridCell
+                                    key={`${rowIdx}-${colIdx}`}
+                                    cellType={node.cellType}
+                                    isVisited={node.isVisited}
+                                    isPath={node.isPath}
+                                    onMouseDown={() => handleMouseDown(rowIdx, colIdx)}
+                                    onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
+                                    onMouseUp={handleMouseUp}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Status Display */}
+            {(isVisualizing || visitedCount > 0) && (
+                <div className="status-display">
+                    <h3>{formatAlgoName(selectedAlgorithm)}</h3>
+                    <p>Nodes Visited: {visitedCount} | Path Length: {pathLength}</p>
+                    <p>Speed: {getSpeedLabel()}</p>
+                    {pathLength === 0 && visitedCount > 0 && (
+                        <p style={{ color: '#e74c3c', fontWeight: 'bold' }}>No path found!</p>
+                    )}
+                </div>
+            )}
+
+            {/* Instructions */}
+            <div className="instructions">
+                <p>Click and drag to draw walls. Select different tools to place start/end nodes.</p>
+                <p>Try different algorithms to see how they explore the grid!</p>
             </div>
         </div>
     );

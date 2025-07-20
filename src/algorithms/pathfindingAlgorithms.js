@@ -48,6 +48,16 @@ function manhattanDistance(nodeA, nodeB) {
     return Math.abs(nodeA.row - nodeB.row) + Math.abs(nodeA.col - nodeB.col);
 }
 
+export function getNodesInShortestPathOrder(endNode) {
+    const nodesInShortestPathOrder = [];
+    let currentNode = endNode;
+    while (currentNode !== null) {
+        nodesInShortestPathOrder.unshift(currentNode);
+        currentNode = currentNode.previousNode;
+    }
+    return nodesInShortestPathOrder;
+}
+
 // Main algorithms
 export function dijkstra(grid, startNode, endNode) {
     const visitedNodes = [];
@@ -118,6 +128,32 @@ export function bfs(grid, startNode, endNode) {
             neighbor.previousNode = currentNode;
             neighbor.isVisited = true;
             queue.push(neighbor);
+        }
+    }
+    
+    return visitedNodes;
+}
+
+export function dfs(grid, startNode, endNode) {
+    const visitedNodes = [];
+    const stack = [startNode];
+    startNode.distance = 0;
+    startNode.isVisited = true;
+
+    while (stack.length) {
+        const currentNode = stack.pop();
+        visitedNodes.push(currentNode);
+        
+        if (currentNode === endNode) break;
+        
+        const neighbors = getUnvisitedNeighbors(currentNode, grid);
+        for (const neighbor of neighbors) {
+            if (neighbor.cellType === 'wall') continue;
+            
+            neighbor.distance = currentNode.distance + 1;
+            neighbor.previousNode = currentNode;
+            neighbor.isVisited = true;
+            stack.push(neighbor);
         }
     }
     

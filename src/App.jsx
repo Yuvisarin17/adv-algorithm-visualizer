@@ -2,22 +2,41 @@ import React, { useState } from 'react';
 import './styles/App.css';
 import SortingVisualizer from './components/SortingVisualizer';
 import PathfindingVisualizer from './components/PathfindingVisualizer';
-import Controls from './components/Controls';
 
 function App() {
   const [showSorting, setShowSorting] = useState(true);
+  
   return (
     <div className="App">
-      <h1>Algorithm Visualizer</h1>
-      <div>
-        <button onClick={() => setShowSorting(true)}>Show Sorting</button>
-        <button onClick={() => setShowSorting(false)}>Show Pathfinding</button>
-      </div>
+      <div className="container">
+        {/* Header */}
+        <div className="header">
+          <h1>Algorithm Visualizer</h1>
+          <p>Interactive visualization of sorting and pathfinding algorithms</p>
+        </div>
 
-      <Controls />
+        {/* Navigation */}
+        <div className="nav-tabs">
+          <div 
+            className={`nav-tab ${showSorting ? 'active' : ''}`}
+            onClick={() => setShowSorting(true)}
+          >
+            Sorting Algorithms
+          </div>
+          <div 
+            className={`nav-tab ${!showSorting ? 'active' : ''}`}
+            onClick={() => setShowSorting(false)}
+          >
+            Pathfinding Algorithms
+          </div>
+        </div>
 
-      <div className="visualizer-contiainer">
-        {showSorting ? <SortingVisualizer /> : <PathfindingVisualizer />}
+        {/* Main Content */}
+        <div className="visualizer-card">
+          <div className="visualizer-container">
+            {showSorting ? <SortingVisualizer /> : <PathfindingVisualizer />}
+          </div>
+        </div>
       </div>
     </div>
   );
