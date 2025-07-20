@@ -27,10 +27,11 @@
     padding: 8px 12px;
 }
 
-button.active {
-    background-color: #3498db;
-    color: white;
+.controls button.active {
+    background-color: #3498db !important;
+    color: white !important;
     font-weight: bold;
+    border: 1px solid #2980b9;
 }
 
 .legend {
@@ -60,3 +61,4 @@ button.active {
 .legend-box.sorted {
     background-color: green;
 }
+

@@ -1,8 +1,133 @@
+.pathfinding-visualizer {
+    text-align: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.pathfinding-visualizer h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.pathfinding-visualizer h3 {
+    color: #34495e;
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.algorithm-selection,
+.tool-selection,
+.controls {
+    margin-bottom: 20px;
+}
+
+.algorithm-selection button,
+.tool-selection button,
+.controls button {
+    margin: 5px;
+    padding: 8px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.algorithm-selection button.active,
+.tool-selection button.active {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+    border-color: #3498db;
+}
+
+.tool-selection button.start-tool.active {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.tool-selection button.end-tool.active {
+    background-color: #F44336;
+    border-color: #F44336;
+}
+
+.tool-selection button.wall-tool.active {
+    background-color: #333333;
+    border-color: #333333;
+}
+
+.visualize-btn {
+    background-color: #e74c3c !important;
+    color: white !important;
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+}
+
+.visualize-btn:disabled {
+    background-color: #95a5a6 !important;
+    opacity: 0.6;
+}
+
+.clear-path-btn {
+    background-color: #f39c12 !important;
+    color: white !important;
+}
+
+.clear-grid-btn {
+    background-color: #95a5a6 !important;
+    color: white !important;
+}
+
+.maze-btn {
+    background-color: #9b59b6 !important;
+    color: white !important;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.legend-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+}
+
+.legend-box.start {
+    background-color: #4CAF50;
+}
+
+.legend-box.end {
+    background-color: #F44336;
+}
+
+.legend-box.wall {
+    background-color: #333333;
+}
+
+.legend-box.visited {
+    background-color: #E3F2FD;
+}
+
+.legend-box.path {
+    background-color: #FFD700;
+}
+
 .grid-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin: 20px auto;
+    border: 2px solid #34495e;
+    padding: 10px;
+    background-color: #f8f9fa;
 }
 
 .grid-row {
@@ -15,5 +140,31 @@
     border: 1px solid #ccc;
     box-sizing: border-box;
     background-color: white;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.1s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #666;
+}
+
+.grid-cell.start {
+    background-color: #4CAF50;
+}
+
+.grid-cell.end {
+    background-color: #F44336;
+}
+
+.grid-cell.wall {
+    background-color: #333333;
+}
+
+.grid-cell.visited {
+    background-color: #E3F2FD;
+}
+
+.grid-cell.path {
+    background-color: #FFD700;
 }
