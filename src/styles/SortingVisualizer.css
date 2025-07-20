@@ -1,0 +1,15 @@
+.sorting-container {
+    display: flex;
+    align-items: flex-end;
+    height: 200px;
+    border: 1px solid #ccc;
+    margin: 20px auto;
+    width: 60%;
+}
+
+.array-bar {
+    background-color: teal;
+    width: 20px;
+    margin: 0 2px;
+    transition: height 0.3s ease;
+}
