@@ -4,12 +4,59 @@
     height: 200px;
     border: 1px solid #ccc;
     margin: 20px auto;
-    width: 60%;
+    width: 80%;
 }
 
 .array-bar {
     background-color: teal;
     width: 20px;
     margin: 0 2px;
-    transition: height 0.3s ease;
+    transition: height 0.3s ease, background-color 0.2s ease;
+}
+
+.array-bar.highlighted {
+    background-color: red;
+}
+
+.array-bar.sorted {
+    background-color: green;
+}
+
+.controls button {
+    margin: 5px;
+    padding: 8px 12px;
+}
+
+button.active {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.legend-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+}
+
+.legend-box.normal {
+    background-color: teal;
+}
+
+.legend-box.highlighted {
+    background-color: red;
+}
+
+.legend-box.sorted {
+    background-color: green;
 }
